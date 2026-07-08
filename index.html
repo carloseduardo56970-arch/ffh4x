@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, maximum-scale=1.0, user-scalable=no">
+    <title>Painel Mod Completo</title>
+    <style>
+        /* ==========================================
+           1. ESTILIZAÇÃO DA BASE E ESTRUTURA
+           ========================================== */
+        html, body {
+            background-color: #000000;
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Arial Narrow', Arial, sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+            overflow: hidden;
+        }
+
+        /* Camada invisível para o gesto de 3 dedos */
+        #sensor-toques {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 9999;
+            pointer-events: auto;
+            display: none; 
+        }
+
+        /* ==========================================
+           2. TELA DE LOGIN (Design Igual à Imagem)
+           ========================================== */
+        .container-login {
+            width: 290px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 10005;
+        }
+
+        .avatar-login {
+            width: 95px;
+            height: 95px;
+            background-color: #1a1a1a;
+            border: 1px solid #ff0000;
+            margin-bottom: -15px;
+            z-index: 2;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .avatar-login img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .botao-logar {
+            width: 100%;
+            background-color: #ff0000;
+            color: #ffffff;
+            font-size: 13px;
+            font-weight: bold;
+            border: none;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 12px 12px 0 0; /* Arredondamento do topo */
+            z-index: 1;
+        }
+
+        .caixa-campos {
+            width: 100%;
+            background-color: #1c1c1c;
+            box-sizing: border-box;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .campo-input {
+            width: 100%;
+            background-color: #262626;
+            border: none;
+            color: #ffffff;
+            padding: 10px;
+            box-sizing: border-box;
+            font-size: 13px;
+            outline: none;
+        }
+
+        .campo-input::placeholder {
+            color: #555;
+        }
+
+        .erro-mensagem {
+            color: #ff0000;
+            font-size: 11px;
+            text-align: center;
+            margin-top: 5px;
+            display: none;
+            font-weight: bold;
+        }
+
+        /* ==========================================
+           3. ESTRUTURA DO PAINEL PRINCIPAL
+           ========================================== */
+        .menu-principal {
+            width: 310px;
+            background-color: #0c0c0c;
+            border: 1px solid #ff0000;
+            color: #ffffff;
+            box-sizing: border-box;
+            box-shadow: 0px 0px 15px rgba(255, 0, 0, 0.6);
+            padding-bottom: 6px;
+            position: relative;
+            z-index: 10000;
+            display: none; 
+        }
+
+        .topo-titulo {
+            background-color: #ff0000;
+            color: #ffffff;
+            font-size: 13px;
+            font-weight: bold;
+            text-align: center;
+            padding: 6px;
+            position: relative;
+        }
+
+        .botao-fechar {
+            position: absolute;
+            right: 10px;
+            top: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .abas-container {
+            background-color: #000000;
+            display: flex;
+            border-bottom: 1px solid #ff0000;
+        }
+
+        .aba-botao {
+            flex: 1;
+            font-size: 11px;
+            font-weight: bold;
+            color: #ffffff;
+            background-color: #141414;
+            padding: 8px 4px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            cursor: pointer;
+        }
+
+        .aba-botao.ativa {
+            background-color: #ff0000;
+        }
+
+        .conteudo-tabela {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 5px;
+        }
+
+        .conteudo-tabela td {
+            padding: 6px 8px;
+            vertical-align: middle;
+        }
+
+        .linha-separadora {
+            border-bottom: 1px solid #ff0000;
+        }
+
+        .texto-opcao {
+            font-size: 13px;
+            font-weight: bold;
+            color: #ffffff;
+        }
+
+        .item-clicavel {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .input-escondido {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .caixa-visto {
+            width: 14px;
+            height: 14px;
+            border: 1px solid #ff0000;
+            background-color: #000000;
+            display: inline-block;
+            position: relative;
+            margin-right: 8px;
+            flex-shrink: 0;
+        }
+
+        .input-escondido:checked + .caixa-visto::after {
+            content: "✓";
+            position: absolute;
+            color: #ff0000;
+            font-size: 12px;
+            font-weight: bold;
+            top: -5px;
+            left: 1px;
+        }
+
+        .caixa-fundo-fov {
+            width: 125px;
+            background-color: #141414;
+            border: 1px solid #2d2d2d;
+            height: 26px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .caixa-fundo-fov::after {
+            content: "";
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background-color: #ff0000;
+        }
+
+        .valor-num {
+            font-size: 12px;
+            font-weight: bold;
+            color: #ffffff;
+            line-height: 12px;
+        }
+
+        .porcentagem-sinal {
+            font-size: 9px;
+            color: #ff0000;
+            line-height: 9px;
+        }
+
+        .slider-container {
+            padding: 2px 8px 8px 8px;
+        }
+
+        .slider-vermelho {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 5px;
+            background: #ff0000;
+            border-radius: 3px;
+            outline: none;
+            margin: 0;
+        }
+
+        .slider-vermelho::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ff0000;
+            cursor: pointer;
+        }
+
+        .caixa-selecao {
+            width: 125px;
+            background-color: #141414;
+            border: 1px solid #2d2d2d;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-sizing: border-box;
+            height: 26px;
+        }
+
+        .caixa-selecao select {
+            width: calc(100% - 20px);
+            background: #141414;
+            color: #ffffff;
+            border: none;
+            padding: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            outline: none;
+            text-align: center;
+            cursor: pointer;
+            -webkit-appearance: none;
+        }
+
+        .seta-vermelha {
+            background-color: #ff0000;
+            color: #ffffff;
+            font-size: 8px;
+            height: 100%;
+            width: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            pointer-events: none;
+        }
+
+        .titulo-radio {
+            font-size: 13px;
+            font-weight: bold;
+            color: #ffffff;
+            padding: 10px 8px 4px 8px;
+        }
+
+        .grupo-radio {
+            display: flex;
+            padding: 0 8px 10px 8px;
+            gap: 15px;
+        }
+
+        .circulo-vermelho {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #000000;
+            margin-right: 5px;
+            border: 1px solid #ff0000;
+            display: inline-block;
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .input-escondido:checked + .circulo-vermelho::after {
+            content: "";
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background-color: #ff0000;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="sensor-toques"></div>
+
+    <div class="container-login" id="telaLogin">
+        <div class="avatar-login">
+            <img src="https://i.imgur.com/vXY8B58.png" onerror="this.src='https://via.placeholder.com/95/1a1a1a/ffffff?text=Robin'" alt="Avatar">
+        </div>
+        <button class="botao-logar" onclick="validarAcesso()">Logar</button>
+        <div class="caixa-campos">
+            <input type="text" id="inputUser" class="campo-input" placeholder="usuário">
+            <input type="password" id="inputPass" class="campo-input" placeholder="senha">
+            <div id="msgErro" class="erro-mensagem">Credenciais Incorretas!</div>
+        </div>
+    </div>
+
+    <div class="menu-principal" id="meuPainel">
+        <div class="topo-titulo">
+            <span>@Uriel.wq 1.108.X</span>
+            <span class="botao-fechar" onclick="fecharMenuManual()">X</span>
+        </div>
+
+        <div class="abas-container">
+            <div class="aba-botao ativa" id="aba-aim" onclick="alternarAbas('aimbot')">🎯 Aimbot</div>
+            <div class="aba-botao" id="aba-esp" onclick="alternarAbas('esp')">👁️ ESP</div>
+        </div>
+
+        <div id="conteudo-aimbot">
+            <table class="conteudo-tabela">
+                <tr>
+                    <td colspan="2">
+                        <label class="item-clicavel">
+                            <input type="checkbox" id="func-aimbot" class="input-escondido" checked onchange="salvarEstados()">
+                            <div class="caixa-visto"></div>
+                            <span class="texto-opcao">Ativar Aimbot</span>
+                        </label>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <label class="item-clicavel">
+                            <input type="checkbox" id="func-exibirfov" class="input-escondido" checked onchange="salvarEstados()">
+                            <div class="caixa-visto"></div>
+                            <span class="texto-opcao">Exibir Círculo do FOV</span>
+                        </label>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2" class="linha-separadora" style="padding-bottom: 8px;">
+                        <label class="item-clicavel">
+                            <input type="checkbox" id="func-espbox" class="input-escondido" onchange="salvarEstados()">
+                            <div class="caixa-visto"></div>
+                            <span class="texto-opcao">Ativar Linhas ESP (Box)</span>
+                        </label>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding-top: 8px; width: 135px;">
+                        <div class="caixa-fundo-fov">
+                            <span class="valor-num" id="texto-fov">100</span>
+                            <span class="porcentagem-sinal">%</span>
+                        </div>
+                    </td>
+                    <td class="texto-opcao" style="padding-top: 8px;">Regular AIMFOV</td>
+                </tr>
+            </table>
+
+            <div class="slider-container">
+                <input type="range" id="func-sliderfov" class="slider-vermelho" min="0" max="100" value="100" oninput="atualizarFov(this.value)">
+            </div>
+
+            <table class="conteudo-tabela">
+                <tr>
+                    <td class="linha-separadora" style="padding-bottom: 8px; width: 135px;">
+                        <div class="caixa-selecao">
+                            <select id="func-target" onchange="salvarEstados()">
+                                <option value="Pescoço">Pescoço</option>
+                                <option value="Cabeça">Cabeça</option>
+                                <option value="Peito">Peito</option>
+                            </select>
+                            <div class="seta-vermelha">▼</div>
+                        </div>
+                    </td>
+                    <td class="texto-opcao linha-separadora" style="padding-bottom: 8px;">Target</td>
+                </tr>
+            </table>
+
+            <div class="titulo-radio">Tipo de Aimbot</div>
+            <div class="grupo-radio">
+                <label class="item-clicavel">
+                    <input type="radio" name="tipo_aimbot" value="Ao atirar" class="input-escondido" checked onchange="salvarEstados()">
+                    <div class="circulo-vermelho"></div>
+                    <span class="texto-opcao">Ao atirar</span>
+                </label>
+                <label class="item-clicavel">
+                    <input type="radio" name="tipo_aimbot" value="Ao olhar" class="input-escondido" onchange="salvarEstados()">
+                    <div class="circulo-vermelho"></div>
+                    <span class="texto-opcao">Ao Olhar</span>
+                </label>
+            </div>
+        </div>
+
+        <div id="conteudo-esp" style="display: none;">
+            <table class="conteudo-tabela">
+                <tr>
+                    <td>
+                        <label class="item-clicavel">
+                            <input type="checkbox" id="func-esplinha" class="input-escondido" onchange="salvarEstados()">
+                            <div class="caixa-visto"></div>
+                            <span class="texto-opcao">ESP Linhas (Tracer)</span>
+                        </label>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label class="item-clicavel">
+                            <input type="checkbox" id="func-espdistancia" class="input-escondido" onchange="salvarEstados()">
+                            <div class="caixa-visto"></div>
+                            <span class="texto-opcao">ESP Distância</span>
+                        </label>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Sistema de autenticação alterado para User: 0000 e Pass: 0000
+        function validarAcesso() {
+            var user = document.getElementById('inputUser').value.trim();
+            var pass = document.getElementById('inputPass').value.trim();
+            var msgErro = document.getElementById('msgErro');
+
+            if (user === "0000" && pass === "0000") {
+                document.getElementById('telaLogin').style.display = 'none';
+                document.getElementById('meuPainel').style.display = 'block';
+                document.getElementById('sensor-toques').style.display = 'block';
+                salvarEstados();
+            } else {
+                msgErro.style.display = 'block';
+            }
+        }
+
+        // Armazenamento central das funções do painel
+        var dadosPainel = {
+            aimbot: true,
+            exibirFov: true,
+            espBox: false,
+            valorFov: 100,
+            target: "Pescoço",
+            tipoAimbot: "Ao atirar",
+            espLinha: false,
+            espDistancia: false
+        };
+
+        function salvarEstados() {
+            if (document.getElementById('meuPainel').style.display === 'none') return;
+
+            dadosPainel.aimbot = document.getElementById('func-aimbot').checked;
+            dadosPainel.exibirFov = document.getElementById('func-exibirfov').checked;
+            dadosPainel.espBox = document.getElementById('func-espbox').checked;
+            dadosPainel.valorFov = parseInt(document.getElementById('func-sliderfov').value);
+            dadosPainel.target = document.getElementById('func-target').value;
+            dadosPainel.tipoAimbot = document.querySelector('input[name="tipo_aimbot"]:checked').value;
+            dadosPainel.espLinha = document.getElementById('func-esplinha').checked;
+            dadosPainel.espDistancia = document.getElementById('func-espdistancia').checked;
+
+            console.log("Configurações Mod: ", JSON.stringify(dadosPainel));
+        }
+
+        function atualizarFov(valor) {
+            document.getElementById('texto-fov').innerText = valor;
+            salvarEstados();
+        }
+
+        function alternarAbas(aba) {
+            var abaAim = document.getElementById('aba-aim');
+            var abaEsp = document.getElementById('aba-esp');
+            var contAim = document.getElementById('conteudo-aimbot');
+            var contEsp = document.getElementById('conteudo-esp');
+
+            if (aba === 'aimbot') {
+                abaAim.classList.add('ativa');
+                abaEsp.classList.remove('ativa');
+                contAim.style.display = 'block';
+                contEsp.style.display = 'none';
+            } else {
+                abaEsp.classList.add('ativa');
+                abaAim.classList.remove('ativa');
+                contAim.style.display = 'none';
+                contEsp.style.display = 'block';
+            }
+        }
+
+        function fecharMenuManual() {
+            painel.style.display = 'none';
+            sensor.style.zIndex = "10001";
+        }
+
+        // Sistema de monitoramento do gesto de 3 dedos simultâneos
+        var sensor = document.getElementById('sensor-toques');
+        var painel = document.getElementById('meuPainel');
+
+        function verificarTresDedos(event) {
+            if (event.touches.length === 3) {
+                event.preventDefault(); 
+                
+                if (painel.style.display === 'none') {
+                    painel.style.display = 'block';
+                    sensor.style.zIndex = "9999"; 
+                } else {
+                    painel.style.display = 'none';
+                    sensor.style.zIndex = "10001"; 
+                }
+            }
+        }
+
+        sensor.addEventListener('touchstart', verificarTresDedos, { passive: false });
+        painel.addEventListener('touchstart', verificarTresDedos, { passive: false });
+    </script>
+
+</body>
+</html>
